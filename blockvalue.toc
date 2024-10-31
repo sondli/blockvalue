@@ -1,0 +1,5 @@
+## Interface: 11200
+## Title: blockvalue
+## Notes: My first AddOn
+blockvalue.lua
+blockvalue.xml

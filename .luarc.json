@@ -1,0 +1,10 @@
+{
+    "diagnostics.globals": [
+        "vim",
+        "SlashCmdList",
+        "DEFAULT_CHAT_FRAME",
+        "GetInventoryItemLink",
+        "WorldFrame",
+        "CreateFrame"
+    ]
+}
