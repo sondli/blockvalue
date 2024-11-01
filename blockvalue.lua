@@ -14,7 +14,7 @@ local function clear_tooltip()
 	end
 end
 
-local function startsWith(str, start)
+local function starts_with(str, start)
 	return string.sub(str, 1, string.len(start)) == start
 end
 
@@ -31,7 +31,6 @@ local function get_base_blockvalue(tooltip)
 			local bvString = string.sub(bvLine, 1, -6)
 			local bvBase = tonumber(bvString)
 			if bvBase == nil then
-				DEFAULT_CHAT_FRAME:AddMessage("NIL")
 				return 0
 			end
 			return bvBase
@@ -48,7 +47,7 @@ local function get_gear_blockvalue(tooltip)
 		if tooltip:SetInventoryItem("player", i) then
 			for j = 1, tooltip:NumLines() do
 				local line = _G["bvToolTipTextLeft" .. j]:GetText()
-				if line ~= nil and startsWith(line, "Equip: Increases the block value of your shield by ") then
+				if line ~= nil and starts_with(line, "Equip: Increases the block value of your shield by ") then
 					local bv = string.sub(line, 52, string.len(line) - 1)
 					bvGear = bvGear + bv
 				end
@@ -58,14 +57,62 @@ local function get_gear_blockvalue(tooltip)
 	return bvGear
 end
 
+local function get_talent_block_info()
+	local _, playerClass = UnitClass("player")
+
+	if playerClass ~= "PALADIN" and playerClass ~= "WARRIOR" and playerClass ~= "SHAMAN" then
+		return nil, 0, 0, 0
+	end
+
+	local tabIndex, talentIndex, bvModifier, bvModifierPerPoint = 0, 0, 0, 0
+	if playerClass == "PALADIN" then
+		tabIndex = 2
+		talentIndex = 8
+		bvModifierPerPoint = 0.10
+	elseif playerClass == "WARRIOR" then
+		tabIndex = 3
+		talentIndex = 5
+		bvModifierPerPoint = 0.03
+	elseif playerClass == "SHAMAN" then
+		tabIndex = 2
+		talentIndex = 2
+		bvModifierPerPoint = 0.06
+	end
+
+	local name, _, _, _, currentRank, maxRank, _, _ = GetTalentInfo(tabIndex, talentIndex);
+	bvModifier = bvModifierPerPoint * currentRank
+
+	return name, currentRank, maxRank, bvModifier
+end
+
+local function get_strength_blockvalue()
+	local _, stat, _, _ = UnitStat("player", 1)
+	return math.floor(stat / 20)
+end
+
 SlashCmdList["BV"] = function()
-	local bvTotal = 0
 	local bvBase = get_base_blockvalue(scanTooltip)
 	local bvGear = get_gear_blockvalue(scanTooltip)
-	bvTotal = bvTotal + bvBase + bvGear
+
+	local talentName, currentRank, maxRank, bvModifier = get_talent_block_info()
+	local bvTalentIncreaseMessage = ""
+	if bvModifier ~= 0 then
+		local bvTalentIncrease = math.floor((bvBase + bvGear) * bvModifier)
+		bvTalentIncreaseMessage = "Your " ..
+				talentName ..
+				" talent (" ..
+				currentRank ..
+				"/" .. maxRank .. ") increases block value by: " .. bvTalentIncrease .. " (" .. bvModifier * 100 ..
+				"%)"
+	end
+
+	local bvStr = get_strength_blockvalue()
+	local bvTotal = math.floor((bvBase + bvGear) * (1 + bvModifier) + bvStr)
 
 	DEFAULT_CHAT_FRAME:AddMessage("Total Block Value: " .. bvTotal)
-	DEFAULT_CHAT_FRAME:AddMessage("Base shield block value: " .. bvBase)
-	DEFAULT_CHAT_FRAME:AddMessage("Gear shield block value: " .. bvGear)
+	DEFAULT_CHAT_FRAME:AddMessage("Shield block value: " .. bvBase)
+	DEFAULT_CHAT_FRAME:AddMessage("Gear block value: " .. bvGear)
+	DEFAULT_CHAT_FRAME:AddMessage("Strength block value: " .. bvStr)
+	DEFAULT_CHAT_FRAME:AddMessage(bvTalentIncreaseMessage)
 end
 
