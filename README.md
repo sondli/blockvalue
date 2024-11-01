@@ -11,3 +11,5 @@ To show a verbose breakdown of your block value
 /bvv
 ```
 
+### Download
+[Download ZIP](https://github.com/sondli/blockvalue/releases/)
