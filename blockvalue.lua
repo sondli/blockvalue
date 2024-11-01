@@ -1,5 +1,3 @@
-SLASH_BV1 = "/bv"
-
 local scanTooltip = CreateFrame("GameTooltip", "bvToolTip", nil, "GameTooltipTemplate")
 scanTooltip:SetOwner(WorldFrame, "ANCHOR_NONE")
 
@@ -90,10 +88,21 @@ local function get_strength_blockvalue()
 	return math.floor(stat / 20)
 end
 
+SLASH_BV1 = "/bv"
 SlashCmdList["BV"] = function()
 	local bvBase = get_base_blockvalue(scanTooltip)
 	local bvGear = get_gear_blockvalue(scanTooltip)
+	local _, _, _, bvModifier = get_talent_block_info()
+	local bvStr = get_strength_blockvalue()
+	local bvTotal = math.floor((bvBase + bvGear) * (1 + bvModifier) + bvStr)
 
+	DEFAULT_CHAT_FRAME:AddMessage("Total Block Value: " .. bvTotal)
+end
+
+SLASH_BVV1 = "/bvv"
+SlashCmdList["BVV"] = function()
+	local bvBase = get_base_blockvalue(scanTooltip)
+	local bvGear = get_gear_blockvalue(scanTooltip)
 	local talentName, currentRank, maxRank, bvModifier = get_talent_block_info()
 	local bvTalentIncreaseMessage = ""
 	if bvModifier ~= 0 then
@@ -115,4 +124,3 @@ SlashCmdList["BV"] = function()
 	DEFAULT_CHAT_FRAME:AddMessage("Strength block value: " .. bvStr)
 	DEFAULT_CHAT_FRAME:AddMessage(bvTalentIncreaseMessage)
 end
-
